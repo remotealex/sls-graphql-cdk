@@ -52,7 +52,7 @@ If you add a new `package.json` file to a lambda directory, be sure to add an `i
 
 ## TODO
 
-- [ ] Add more features to the users service
-- [ ] Try converting some of the DynamoDB stuff to [VTL](https://docs.aws.amazon.com/appsync/latest/devguide/resolver-mapping-template-reference-programming-guide.html)
-- [ ] Get CDK working locally with [localstack](https://localstack.cloud/)
-- [ ] Write some tests
+* [x] Add more features to the users service
+* [x] Try converting some of the DynamoDB stuff to [VTL](https://docs.aws.amazon.com/appsync/latest/devguide/resolver-mapping-template-reference-programming-guide.html)
+* [ ] Get CDK working locally with [localstack](https://localstack.cloud/)
+* [ ] Write some tests

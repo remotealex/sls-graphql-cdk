@@ -34,6 +34,17 @@ export class CdkAppsyncStack extends cdk.Stack {
     // Prints out the stack region to the terminal
     new cdk.CfnOutput(this, "Stack Region", { value: this.region });
 
+    // **** NOTES **** \\
+
+    // Setup a dynamo-db table
+    const notesTable = new ddb.Table(this, "CDKNotesTable", {
+      billingMode: ddb.BillingMode.PAY_PER_REQUEST,
+      partitionKey: {
+        name: "id",
+        type: ddb.AttributeType.STRING,
+      },
+    });
+
     // Create a new lambda function as a notes service
     const notesLambda = new lambda.Function(this, "AppSyncNotesHandler", {
       runtime: lambda.Runtime.NODEJS_12_X,
@@ -48,12 +59,15 @@ export class CdkAppsyncStack extends cdk.Stack {
       notesLambda
     );
 
+    // Enable the Lambda function to access the DynamoDB table (using IAM)
+    notesTable.grantFullAccess(notesLambda);
+
     // Add the resolvers for our lambda data source
     notesLambdaDs.createResolver({
       typeName: "Query",
       fieldName: "getNoteById",
     });
-    notesLambdaDs.createResolver({ typeName: "Query", fieldName: "listNotes" });
+    // notesLambdaDs.createResolver({ typeName: "Query", fieldName: "listNotes" });
     notesLambdaDs.createResolver({
       typeName: "Mutation",
       fieldName: "createNote",
@@ -67,20 +81,26 @@ export class CdkAppsyncStack extends cdk.Stack {
       fieldName: "updateNote",
     });
 
-    // Setup a dynamo-db table
-    const notesTable = new ddb.Table(this, "CDKNotesTable", {
-      billingMode: ddb.BillingMode.PAY_PER_REQUEST,
-      partitionKey: {
-        name: "id",
-        type: ddb.AttributeType.STRING,
-      },
-    });
-
-    // Enable the Lambda function to access the DynamoDB table (using IAM)
-    notesTable.grantFullAccess(notesLambda);
-
     // Create an environment variable that we will use in the function code
     notesLambda.addEnvironment("NOTES_TABLE", notesTable.tableName);
+
+    // Create a new DynamoDB data source for the notes table
+    const notesDDBDs = api.addDynamoDbDataSource(
+      "notesDDBDatasource",
+      notesTable
+    );
+
+    // Create a new VTL based resolver for our list-notes query
+    // NB. As this is a simple operation we don't need to write our own VTL
+    //     and can just use the built-in ones!
+    notesDDBDs.createResolver({
+      typeName: "Query",
+      fieldName: "listNotes",
+      requestMappingTemplate: appsync.MappingTemplate.dynamoDbScanTable(),
+      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultList(),
+    });
+
+    // **** USERS **** \\
 
     // Create a new lambda function as a users service
     const usersLambda = new lambda.Function(this, "AppSyncUserHandler", {
@@ -98,5 +118,47 @@ export class CdkAppsyncStack extends cdk.Stack {
 
     // Add the resolvers for our lambda data source
     usersLambdaDs.createResolver({ typeName: "Query", fieldName: "listUsers" });
+
+    // Create a new HTTP data source for our api
+    const usersHTTPDs = api.addHttpDataSource(
+      "usersHTTPDatasource",
+      "https://jsonplaceholder.typicode.com"
+    );
+
+    // Add a resolver which fetches the users via HTTP
+    usersHTTPDs.createResolver({
+      typeName: "Query",
+      fieldName: "listUsersHTTP",
+      requestMappingTemplate: appsync.MappingTemplate.fromFile(
+        path.join(
+          __dirname,
+          "./users/mapping-templates/Query.listUsersHTTP.req.vtl"
+        )
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.fromFile(
+        path.join(
+          __dirname,
+          "./users/mapping-templates/Query.listUsersHTTP.res.vtl"
+        )
+      ),
+    });
+
+    // Add a resolver which fetches the users via HTTP
+    usersHTTPDs.createResolver({
+      typeName: "Query",
+      fieldName: "getUserByIdHTTP",
+      requestMappingTemplate: appsync.MappingTemplate.fromFile(
+        path.join(
+          __dirname,
+          "./users/mapping-templates/Query.getUserByIdHTTP.req.vtl"
+        )
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.fromFile(
+        path.join(
+          __dirname,
+          "./users/mapping-templates/Query.getUserByIdHTTP.res.vtl"
+        )
+      ),
+    });
   }
 }

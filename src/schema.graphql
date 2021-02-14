@@ -24,13 +24,15 @@ input UpdateNoteInput {
 }
 
 type Query {
-  getNoteById(noteId: String!): Note
+  getNoteById(noteId: ID!): Note
   listNotes: [Note]
   listUsers: [User]
+  listUsersHTTP: [User]
+  getUserByIdHTTP(id: Int!): User
 }
 
 type Mutation {
   createNote(note: NoteInput!): Note
   updateNote(note: UpdateNoteInput!): Note
-  deleteNote(noteId: String!): String
+  deleteNote(noteId: ID!): String
 }
