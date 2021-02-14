@@ -6,7 +6,7 @@
     "copy-graphql": "copyfiles src/**/*.graphql dist",
     "copy-node_modules": "copyfiles src/**/node_modules/**/**/* dist",
     "diff": "yarn build && yarn cdk diff",
-    "cdk": "cdk --profile jumpsoft-amplify",
+    "cdk": "cdk --profile aws-cdk-test",
     "deploy": "yarn build && yarn cdk deploy",
     "test": "jest",
     "install:users": "cd src/users && yarn",
