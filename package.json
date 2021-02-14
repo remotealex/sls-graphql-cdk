@@ -1,0 +1,34 @@
+{
+  "name": "cdk-appsync",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "tsc && yarn copy-graphql && yarn copy-node_modules",
+    "copy-graphql": "copyfiles src/**/*.graphql dist",
+    "copy-node_modules": "copyfiles src/**/node_modules/**/**/* dist",
+    "diff": "yarn build && yarn cdk diff",
+    "cdk": "cdk --profile jumpsoft-amplify",
+    "deploy": "yarn build && yarn cdk deploy",
+    "test": "jest",
+    "install:users": "cd src/users && yarn",
+    "postinstall": "run-p install:*"
+  },
+  "devDependencies": {
+    "@aws-cdk/assert": "1.89.0",
+    "@aws-cdk/aws-appsync": "1.89.0",
+    "@aws-cdk/aws-dynamodb": "1.89.0",
+    "@aws-cdk/aws-lambda": "1.89.0",
+    "@aws-cdk/core": "1.89.0",
+    "@types/jest": "^26.0.10",
+    "@types/node": "10.17.27",
+    "@types/node-fetch": "^2.5.8",
+    "aws-cdk": "1.89.0",
+    "copyfiles": "^2.4.1",
+    "jest": "^26.4.2",
+    "npm-run-all": "^4.1.5",
+    "source-map-support": "^0.5.16",
+    "ts-jest": "^26.2.0",
+    "ts-node": "^9.0.0",
+    "typescript": "~3.9.7"
+  },
+  "license": "MIT"
+}
